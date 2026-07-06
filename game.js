@@ -1,6 +1,7 @@
 /* =============================================
-   ИДЕАЛЬНАЯ СТОПКА — ИГРОВОЙ ДВИЖОК v0.1
+   STACK PERFECT — ИГРОВОЙ ДВИЖОК v0.2
    Telegram Mini App | Vanilla JS + Canvas
+   Редизайн: Poppins, glassmorphism, HTML-оверлеи
    ============================================= */
 
 'use strict';
@@ -66,9 +67,9 @@ class AssetLoader {
    * @returns {Promise<void>}
    */
   async loadAll() {
-    // Собираем все файлы для загрузки: фон, платформа + все цветные блоки
     const files = [
       { key: 'bg',       src: 'assets/bg.png' },
+      { key: 'bg_menu',  src: 'assets/bg_menu.png' },
       { key: 'platform', src: 'assets/platform.png' },
       ...BLOCK_IMAGE_NAMES.map(name => ({
         key: name,
@@ -77,18 +78,11 @@ class AssetLoader {
     ];
 
     this.total = files.length;
-
-    // Загружаем параллельно, обновляя прогресс
     const promises = files.map(file => this._loadImage(file.key, file.src));
     await Promise.all(promises);
   }
 
-  /**
-   * Загружает одно изображение
-   * @param {string} key  — ключ для доступа (this.images[key])
-   * @param {string} src  — путь к файлу
-   * @returns {Promise<void>}
-   */
+  /** Загружает одно изображение */
   _loadImage(key, src) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -99,7 +93,6 @@ class AssetLoader {
         resolve();
       };
       img.onerror = () => {
-        // Если изображение не загрузилось — создаём заглушку (цветной прямоугольник)
         console.warn(`[AssetLoader] Не удалось загрузить: ${src}, создаю заглушку`);
         this.images[key] = this._createFallbackImage(key);
         this.loaded++;
@@ -110,20 +103,16 @@ class AssetLoader {
     });
   }
 
-  /**
-   * Создаёт заглушку — цветной canvas, если PNG не загрузился
-   * @param {string} key
-   * @returns {HTMLCanvasElement}
-   */
+  /** Создаёт заглушку — цветной canvas, если PNG не загрузился */
   _createFallbackImage(key) {
     const c = document.createElement('canvas');
     c.width = 64;
     c.height = 64;
     const cx = c.getContext('2d');
-    // Цвет по умолчанию для каждого ключа
     const colors = {
-      bg: '#a8edea',
-      platform: '#999',
+      bg: '#1a1a3e',
+      bg_menu: '#1a1a3e',
+      platform: '#888',
       black: '#222', blue: '#4a90d9', green: '#27ae60',
       grey: '#aaa', orange: '#f39c12', pink: '#e91e8f',
       purple: '#8e44ad', red: '#e74c3c', yellow: '#f1c40f',
@@ -133,7 +122,7 @@ class AssetLoader {
     return c;
   }
 
-  /** Обновляет полосу прогресса на экране загрузки */
+  /** Обновляет полосу прогресса */
   _updateProgress() {
     const pct = this.total > 0 ? (this.loaded / this.total) * 100 : 0;
     const bar = document.getElementById('loaderBarFill');
@@ -145,8 +134,7 @@ class AssetLoader {
     const screen = document.getElementById('loadingScreen');
     if (screen) {
       screen.classList.add('hidden');
-      // Полностью убираем из DOM через полсекунды
-      setTimeout(() => { screen.style.display = 'none'; }, 600);
+      setTimeout(() => { screen.style.display = 'none'; }, 700);
     }
   }
 }
@@ -156,94 +144,58 @@ class AssetLoader {
 // =============================================
 class ParticleSystem {
   constructor() {
-    /** @type {Array<Particle>} активные частицы */
     this.particles = [];
   }
 
   /**
    * Создаёт взрыв частиц из обрезанного куска блока
-   * @param {number} x      — левая граница обрезка
-   * @param {number} y      — верх обрезка
-   * @param {number} width  — ширина обрезка
-   * @param {number} height — высота обрезка
-   * @param {string} color  — CSS-цвет блока
    */
   emit(x, y, width, height, color) {
-    // Случайное количество частиц
     const count = CONFIG.PARTICLE_COUNT_MIN +
       Math.floor(Math.random() * (CONFIG.PARTICLE_COUNT_MAX - CONFIG.PARTICLE_COUNT_MIN + 1));
 
     for (let i = 0; i < count; i++) {
-      // Случайная позиция внутри обрезанной области
       const px = x + Math.random() * width;
       const py = y + Math.random() * height;
-
-      // Случайный размер
       const size = CONFIG.PARTICLE_SIZE_MIN +
         Math.random() * (CONFIG.PARTICLE_SIZE_MAX - CONFIG.PARTICLE_SIZE_MIN);
-
-      // Случайная начальная скорость (разлет в стороны и вниз)
-      const vx = (Math.random() - 0.5) * 3;   // горизонтально: -1.5 .. +1.5
-      const vy = -Math.random() * 2 + 1;       // вертикально: в основном вниз
+      const vx = (Math.random() - 0.5) * 3;
+      const vy = -Math.random() * 2 + 1;
 
       this.particles.push({
-        x: px,
-        y: py,
-        size: size,
-        color: color,
-        vx: vx,
-        vy: vy,
-        alpha: 1,       // прозрачность (затухает)
+        x: px, y: py, size, color,
+        vx, vy,
+        alpha: 1,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.2,
       });
     }
   }
 
-  /**
-   * Обновляет состояние всех частиц (вызывается каждый кадр)
-   * @param {number} dt — время кадра в мс
-   */
+  /** Обновляет состояние всех частиц */
   update(dt) {
-    const dtFactor = dt / 16.67; // нормализация под 60fps
-
+    const f = dt / 16.67;
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-
-      // Гравитация
-      p.vy += CONFIG.PARTICLE_GRAVITY * dtFactor;
-
-      // Движение
-      p.x += p.vx * dtFactor;
-      p.y += p.vy * dtFactor;
-
-      // Трение по воздуху
+      p.vy += CONFIG.PARTICLE_GRAVITY * f;
+      p.x += p.vx * f;
+      p.y += p.vy * f;
       p.vx *= CONFIG.PARTICLE_FRICTION;
       p.vy *= CONFIG.PARTICLE_FRICTION;
-
-      // Вращение
-      p.rotation += p.rotSpeed * dtFactor;
-
-      // Затухание прозрачности
-      p.alpha -= 0.015 * dtFactor;
-
-      // Удаляем, если невидимы или ушли за экран
+      p.rotation += p.rotSpeed * f;
+      p.alpha -= 0.015 * f;
       if (p.alpha <= 0 || p.y > window.innerHeight + 50) {
         this.particles.splice(i, 1);
       }
     }
   }
 
-  /**
-   * Рисует все частицы на canvas
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {number} cameraY — смещение камеры
-   */
-  draw(ctx, cameraY) {
+  /** Рисует все частицы */
+  draw(ctx) {
     for (const p of this.particles) {
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.alpha);
-      ctx.translate(p.x, p.y + cameraY);
+      ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation);
       ctx.fillStyle = p.color;
       ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
@@ -251,7 +203,6 @@ class ParticleSystem {
     }
   }
 
-  /** Очищает все частицы */
   clear() {
     this.particles = [];
   }
@@ -262,30 +213,19 @@ class ParticleSystem {
 // =============================================
 class Camera {
   constructor() {
-    this.currentY    = 0;   // текущее смещение (анимированное)
-    this.targetY     = 0;   // целевое смещение
+    this.currentY = 0;
+    this.targetY  = 0;
   }
 
-  /**
-   * Устанавливает новую целевую позицию камеры
-   * @param {number} newY — целевое Y-смещение
-   */
   setTarget(newY) {
-    if (newY > this.targetY) {
-      this.targetY = newY;
-    }
+    if (newY > this.targetY) this.targetY = newY;
   }
 
-  /**
-   * Плавно двигает камеру к цели (вызывается каждый кадр)
-   * @param {number} dt — время кадра в мс
-   */
   update(dt) {
     const t = 1 - Math.pow(1 - CONFIG.CAM_LERP, dt / 16.67);
     this.currentY += (this.targetY - this.currentY) * t;
   }
 
-  /** Сброс камеры в начальную позицию */
   reset() {
     this.currentY = 0;
     this.targetY  = 0;
@@ -301,6 +241,11 @@ class Game {
     this.canvas = document.getElementById('gameCanvas');
     this.ctx    = this.canvas.getContext('2d');
 
+    // --- Offscreen canvas для размытого фона ---
+    this._bgBlurCanvas = document.createElement('canvas');
+    this._bgBlurCtx    = this._bgBlurCanvas.getContext('2d');
+    this._bgBlurReady  = false;
+
     // --- Загрузчик ассетов ---
     this.assets = new AssetLoader();
 
@@ -309,14 +254,14 @@ class Game {
     this.camera    = new Camera();
 
     // --- Игровое состояние ---
-    this.state      = 'loading';  // loading | menu | playing | gameover
-    this.score      = 0;
-    this.bestScore  = this._loadBestScore();
+    this.state     = 'loading';  // loading | menu | playing | gameover
+    this.score     = 0;
+    this.bestScore = this._loadBestScore();
 
     // --- Блоки ---
-    this.blocks      = [];   // стопка (от дна к верху)
-    this.movingBlock = null; // текущий движущийся блок
-    this.direction   = 1;    // 1 = вправо, -1 = влево
+    this.blocks      = [];
+    this.movingBlock = null;
+    this.direction   = 1;
 
     // --- Время ---
     this.lastTime = 0;
@@ -326,7 +271,14 @@ class Game {
     this.H = 0;
     this.dpr = 1;
 
-    // Привязываем обработчики
+    // HTML-элементы
+    this.elMenu      = document.getElementById('menuOverlay');
+    this.elScore     = document.getElementById('scoreOverlay');
+    this.elScoreVal  = document.getElementById('scoreValue');
+    this.elGameOver  = document.getElementById('gameOverOverlay');
+    this.elFinalSc   = document.getElementById('finalScore');
+    this.elBestSc    = document.getElementById('bestScore');
+
     this._setupCanvas();
     this._setupInput();
   }
@@ -335,7 +287,6 @@ class Game {
   //  ИНИЦИАЛИЗАЦИЯ
   // ===========================================
 
-  /** Настраивает canvas под размер экрана */
   _setupCanvas() {
     this.dpr = window.devicePixelRatio || 1;
     this.W = window.innerWidth;
@@ -351,41 +302,50 @@ class Game {
       this.canvas.width  = this.W * this.dpr;
       this.canvas.height = this.H * this.dpr;
       this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      this._bgBlurReady = false; // пересоздаём offscreen при resize
     });
   }
 
-  /** Привязывает обработчики ввода (тач/клик) */
   _setupInput() {
-    const handler = (e) => {
+    // Клик по canvas — бросок блока (только во время игры)
+    this.canvas.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      this._handleInput();
-    };
-    this.canvas.addEventListener('pointerdown', handler);
+      if (this.state === 'playing' && this.movingBlock) {
+        this._dropBlock();
+      }
+    });
+
+    // Кнопки HTML
+    document.getElementById('btnPlay').addEventListener('click', () => {
+      if (this.state === 'menu') this._resetGame();
+    });
+    document.getElementById('btnPlay').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (this.state === 'menu') this._resetGame();
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', () => {
+      if (this.state === 'gameover') this._resetGame();
+    });
+    document.getElementById('btnRestart').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (this.state === 'gameover') this._resetGame();
+    });
 
     // Предотвращаем зум и скролл
     document.addEventListener('gesturestart', e => e.preventDefault());
     document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
   }
 
-  /** Запускает загрузку ассетов, затем стартует игру */
   async start() {
-    // Инициализация Telegram Web App
     this._initTelegram();
-
-    // Загружаем все изображения
     await this.assets.loadAll();
-
-    // Прячем экран загрузки
     this.assets.hideLoadingScreen();
-
-    // Состояние — меню
     this.state = 'menu';
-
-    // Запускаем игровой цикл
+    this._updateOverlays();
     requestAnimationFrame((t) => this._gameLoop(t));
   }
 
-  /** Инициализация Telegram Web App */
   _initTelegram() {
     if (window.Telegram && Telegram.WebApp) {
       Telegram.WebApp.ready();
@@ -394,10 +354,39 @@ class Game {
   }
 
   // ===========================================
+  //  УПРАВЛЕНИЕ HTML-ОВЕРЛЕЯМИ
+  // ===========================================
+
+  _updateOverlays() {
+    switch (this.state) {
+      case 'menu':
+        this.elMenu.classList.remove('hidden');
+        this.elScore.classList.add('hidden');
+        this.elGameOver.classList.add('hidden');
+        break;
+      case 'playing':
+        this.elMenu.classList.add('hidden');
+        this.elScore.classList.remove('hidden');
+        this.elGameOver.classList.add('hidden');
+        break;
+      case 'gameover':
+        this.elMenu.classList.add('hidden');
+        this.elScore.classList.add('hidden');
+        this.elGameOver.classList.remove('hidden');
+        this.elFinalSc.textContent = this.score;
+        this.elBestSc.textContent  = this.bestScore;
+        break;
+    }
+  }
+
+  _updateScoreDisplay() {
+    this.elScoreVal.textContent = this.score;
+  }
+
+  // ===========================================
   //  УПРАВЛЕНИЕ ИГРОВЫМ СОСТОЯНИЕМ
   // ===========================================
 
-  /** Сброс и начало новой игры */
   _resetGame() {
     this.blocks      = [];
     this.movingBlock = null;
@@ -405,44 +394,37 @@ class Game {
     this.particles.clear();
     this.score       = 0;
     this.state       = 'playing';
+    this._updateScoreDisplay();
+    this._updateOverlays();
 
-    // Создаём стартовую платформу (серый блок platform.png)
+    // Пересоздаём offscreen blur-фон
+    this._bgBlurReady = false;
+
+    // Стартовая платформа
     const base = this._createBlock(
       (this.W - CONFIG.BASE_WIDTH) / 2,
       this.H - this.H * CONFIG.BASE_Y_OFFSET - CONFIG.BASE_HEIGHT,
       CONFIG.BASE_WIDTH,
       CONFIG.BASE_HEIGHT,
-      'platform'    // ключ изображения
+      'platform'
     );
     this.blocks.push(base);
-
-    // Спавним первый движущийся блок
     this._spawnMovingBlock();
   }
 
-  /**
-   * Создаёт объект блока
-   * @returns {Object}
-   */
   _createBlock(x, y, width, height, imageKey) {
     return { x, y, width, height, imageKey };
   }
 
-  /**
-   * Спавнит новый движущийся блок над стопкой
-   * Выбирает случайный цвет из доступных
-   */
   _spawnMovingBlock() {
     const topBlock = this.blocks[this.blocks.length - 1];
     const w = topBlock.width;
-
-    // Случайный цвет блока
     const randomKey = BLOCK_IMAGE_NAMES[
       Math.floor(Math.random() * BLOCK_IMAGE_NAMES.length)
     ];
 
     this.movingBlock = this._createBlock(
-      this.W / 2 - w / 2,       // начинаем по центру
+      this.W / 2 - w / 2,
       topBlock.y - CONFIG.BLOCK_HEIGHT,
       w,
       CONFIG.BLOCK_HEIGHT,
@@ -452,40 +434,15 @@ class Game {
   }
 
   // ===========================================
-  //  ОБРАБОТКА ВВОДА
-  // ===========================================
-
-  _handleInput() {
-    switch (this.state) {
-      case 'menu':
-        this._resetGame();
-        break;
-      case 'playing':
-        if (this.movingBlock) this._dropBlock();
-        break;
-      case 'gameover':
-        this._resetGame();
-        break;
-    }
-  }
-
-  // ===========================================
   //  ЛОГИКА ДВИЖЕНИЯ БЛОКА
   // ===========================================
 
-  /**
-   * Обновляет позицию движущегося блока (влево-вправо)
-   * @param {number} dt — время кадра в мс
-   */
   _updateMovingBlock(dt) {
     if (!this.movingBlock) return;
-
-    const dtFactor = dt / 16.67;
-    const speed = (CONFIG.BLOCK_SPEED + this.score * CONFIG.SPEED_INCREASE) * dtFactor;
-
+    const f = dt / 16.67;
+    const speed = (CONFIG.BLOCK_SPEED + this.score * CONFIG.SPEED_INCREASE) * f;
     this.movingBlock.x += speed * this.direction;
 
-    // Отскок от краёв экрана
     if (this.movingBlock.x + this.movingBlock.width > this.W) {
       this.movingBlock.x = this.W - this.movingBlock.width;
       this.direction = -1;
@@ -500,22 +457,18 @@ class Game {
   //  ЛОГИКА ПАДЕНИЯ И ОБРЕЗКИ БЛОКА
   // ===========================================
 
-  /**
-   * Блок падает вниз и вычисляется перекрытие с предыдущим блоком.
-   * Обрезанный кусок дробится на частицы.
-   */
   _dropBlock() {
     if (!this.movingBlock || this.state !== 'playing') return;
 
     const topBlock = this.blocks[this.blocks.length - 1];
     const mb = this.movingBlock;
 
-    // Вычисляем перекрытие по оси X
+    // Перекрытие по оси X
     const overlapLeft  = Math.max(mb.x, topBlock.x);
     const overlapRight = Math.min(mb.x + mb.width, topBlock.x + topBlock.width);
     const overlapWidth = overlapRight - overlapLeft;
 
-    // --- Полный промах → Game Over ---
+    // Полный промах → Game Over
     if (overlapWidth <= 0) {
       this.state = 'gameover';
       if (this.score > this.bestScore) {
@@ -523,13 +476,12 @@ class Game {
         this._saveBestScore(this.bestScore);
       }
       this.movingBlock = null;
+      this._updateOverlays();
       return;
     }
 
-    // --- Вычисляем обрезок ---
+    // Обрезок
     const diff = topBlock.width - overlapWidth;
-
-    // Создаём новый блок = область перекрытия
     const newBlock = this._createBlock(
       overlapLeft,
       topBlock.y - CONFIG.BLOCK_HEIGHT,
@@ -539,56 +491,33 @@ class Game {
     );
     this.blocks.push(newBlock);
     this.score++;
+    this._updateScoreDisplay();
 
-    // --- Эффект частиц (обрезанный кусок) ---
+    // Эффект частиц
     if (diff > 0.5) {
-      // Определяем сторону обрезка
       const isLeftCut = mb.x < topBlock.x;
       const cutX = isLeftCut ? mb.x : topBlock.x + topBlock.width;
-
-      // Получаем цвет из изображения блока для частиц
       const particleColor = this._getBlockColor(mb.imageKey);
-
-      this.particles.emit(
-        cutX,
-        newBlock.y,
-        diff,
-        CONFIG.BLOCK_HEIGHT,
-        particleColor
-      );
+      this.particles.emit(cutX, newBlock.y, diff, CONFIG.BLOCK_HEIGHT, particleColor);
     }
 
-    // --- Сдвигаем камеру ---
+    // Камера
     const neededY = this.H * CONFIG.SPAWN_Y_RATIO - newBlock.y;
     this.camera.setTarget(neededY);
 
     this.movingBlock = null;
 
-    // Через задержку спавним следующий блок
     setTimeout(() => {
-      if (this.state === 'playing') {
-        this._spawnMovingBlock();
-      }
+      if (this.state === 'playing') this._spawnMovingBlock();
     }, CONFIG.SPAWN_DELAY);
   }
 
-  /**
-   * Возвращает CSS-цвет по ключу изображения (для частиц)
-   * @param {string} key
-   * @returns {string}
-   */
   _getBlockColor(key) {
     const map = {
-      black:   '#222222',
-      blue:    '#4a90d9',
-      green:   '#27ae60',
-      grey:    '#aaaaaa',
-      orange:  '#f39c12',
-      pink:    '#e91e8f',
-      purple:  '#8e44ad',
-      red:     '#e74c3c',
-      yellow:  '#f1c40f',
-      platform:'#999999',
+      black: '#222222', blue: '#4a90d9', green: '#27ae60',
+      grey: '#aaaaaa', orange: '#f39c12', pink: '#e91e8f',
+      purple: '#8e44ad', red: '#e74c3c', yellow: '#f1c40f',
+      platform: '#888888',
     };
     return map[key] || '#cccccc';
   }
@@ -601,14 +530,11 @@ class Game {
     const dt = this.lastTime ? (timestamp - this.lastTime) : 16.67;
     this.lastTime = timestamp;
 
-    // Обновление логики
     if (this.state === 'playing') {
       this._updateMovingBlock(dt);
       this.camera.update(dt);
     }
     this.particles.update(dt);
-
-    // Отрисовка
     this._draw();
 
     requestAnimationFrame((t) => this._gameLoop(t));
@@ -621,206 +547,109 @@ class Game {
   _draw() {
     const ctx = this.ctx;
 
-    // --- 1. Фон (bg.png) ---
+    // 1. Фон (blurred bg_menu during gameplay, bg_menu full during menu)
     this._drawBackground();
 
-    // --- 2. Смещение камеры ---
+    // 2. Камера + блоки + частицы
     ctx.save();
     ctx.translate(0, this.camera.currentY);
 
-    // --- 3. Блоки стопки ---
     for (let i = 0; i < this.blocks.length; i++) {
       this._drawBlock(this.blocks[i]);
     }
 
-    // --- 4. Движущийся блок ---
     if (this.movingBlock && this.state === 'playing') {
       this._drawBlock(this.movingBlock);
     }
 
-    // --- 5. Частицы обрезка ---
-    this.particles.draw(ctx, 0); // cameraY уже применён через ctx.translate
+    this.particles.draw(ctx);
 
     ctx.restore();
-
-    // --- 6. Счёт (поверх камеры) ---
-    this._drawScore();
-
-    // --- 7. Оверлеи ---
-    if (this.state === 'menu')     this._drawMenu();
-    if (this.state === 'gameover') this._drawGameOver();
-  }
-
-  /** Рисует фон (растягивает bg.png на весь экран) */
-  _drawBackground() {
-    const bg = this.assets.images.bg;
-    if (bg) {
-      this.ctx.drawImage(bg, 0, 0, this.W, this.H);
-    } else {
-      // Фоллбэк — градиент
-      const g = this.ctx.createLinearGradient(0, 0, 0, this.H);
-      g.addColorStop(0, '#a8edea');
-      g.addColorStop(1, '#fed6e3');
-      this.ctx.fillStyle = g;
-      this.ctx.fillRect(0, 0, this.W, this.H);
-    }
   }
 
   /**
-   * Рисует блок (платформу или цветной блок)
-   * Масштабирует изображение под размер блока
-   * @param {Object} block
+   * Рисует фон:
+   *  -.Menu: bg_menu.png на весь экран
+   *  - Playing: bg_menu.png с размытием + тёмная маска
+   *  - Gameover: bg_menu.png с размытием + тёмная маска
+   */
+  _drawBackground() {
+    const ctx = this.ctx;
+    const bgMenu = this.assets.images.bg_menu;
+
+    if (!bgMenu) {
+      // Фоллбэк — простой градиент
+      const g = ctx.createLinearGradient(0, 0, 0, this.H);
+      g.addColorStop(0, '#1a1a3e');
+      g.addColorStop(1, '#0f0f1a');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.W, this.H);
+      return;
+    }
+
+    if (this.state === 'menu') {
+      // В меню — рисуем фон чётко (HTML-оверлей сам поверх)
+      ctx.drawImage(bgMenu, 0, 0, this.W, this.H);
+      return;
+    }
+
+    // Игра / Game Over — размытый фон + маска
+    // Создаём offscreen canvas с blur (один раз)
+    if (!this._bgBlurReady) {
+      this._bgBlurCanvas.width  = this.W;
+      this._bgBlurCanvas.height = this.H;
+      const bc = this._bgBlurCtx;
+      bc.clearRect(0, 0, this.W, this.H);
+      bc.filter = 'blur(12px)';
+      bc.drawImage(bgMenu, 0, 0, this.W, this.H);
+      bc.filter = 'none';
+      this._bgBlurReady = true;
+    }
+
+    // Рисуем размытый фон
+    ctx.drawImage(this._bgBlurCanvas, 0, 0);
+
+    // Полупрозрачная тёмная маска для контраста блоков
+    ctx.fillStyle = 'rgba(15, 15, 26, 0.35)';
+    ctx.fillRect(0, 0, this.W, this.H);
+  }
+
+  /**
+   * Рисует блок с изображением, тенью и ТОНКОЙ обводкой
    */
   _drawBlock(block) {
     const ctx = this.ctx;
     const img = this.assets.images[block.imageKey];
 
-    // Тень (лёгкая)
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.10)';
     ctx.fillRect(block.x + 2, block.y + 2, block.width, block.height);
 
+    // Изображение или цвет
     if (img) {
-      // Растягиваем изображение под размер блока
       ctx.drawImage(img, block.x, block.y, block.width, block.height);
     } else {
-      // Фоллбэк — заливка цветом
       ctx.fillStyle = this._getBlockColor(block.imageKey);
       ctx.fillRect(block.x, block.y, block.width, block.height);
     }
 
-    // Тонкий блик сверху для объёма
+    // Блик сверху для объёма
     const grad = ctx.createLinearGradient(block.x, block.y, block.x, block.y + block.height);
-    grad.addColorStop(0,   'rgba(255,255,255,0.22)');
+    grad.addColorStop(0,   'rgba(255,255,255,0.18)');
     grad.addColorStop(0.4, 'rgba(255,255,255,0.02)');
-    grad.addColorStop(1,   'rgba(0,0,0,0.10)');
+    grad.addColorStop(1,   'rgba(0,0,0,0.08)');
     ctx.fillStyle = grad;
     ctx.fillRect(block.x, block.y, block.width, block.height);
-  }
 
-  /** Отрисовка счёта в верхней части экрана */
-  _drawScore() {
-    const ctx = this.ctx;
-    ctx.save();
-
-    // Плашка
-    const pillW = 110, pillH = 42;
-    const pillX = this.W / 2 - pillW / 2;
-    const pillY = 50;
-
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    this._roundRect(ctx, pillX, pillY, pillW, pillH, 21);
-    ctx.fill();
-
-    // Текст
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 22px "Segoe UI", sans-serif';
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(String(this.score), this.W / 2, pillY + pillH / 2);
-
-    ctx.restore();
-  }
-
-  /** Экран меню (начальный экран) */
-  _drawMenu() {
-    const ctx = this.ctx;
-
-    // Полупрозрачный оверлей
-    ctx.fillStyle = 'rgba(0,0,0,0.30)';
-    ctx.fillRect(0, 0, this.W, this.H);
-
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Заголовок
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 36px "Segoe UI", sans-serif';
-    ctx.fillText('Идеальная стопка', this.W / 2, this.H * 0.30);
-
-    // Подзаголовок
-    ctx.font = '16px "Segoe UI", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.fillText('Нажми, чтобы начать', this.W / 2, this.H * 0.38);
-
-    // Кнопка
-    this._drawButton(this.W / 2, this.H * 0.52, 'ИГРАТЬ', '#4ecdc4');
-  }
-
-  /** Экран Game Over */
-  _drawGameOver() {
-    const ctx = this.ctx;
-
-    ctx.fillStyle = 'rgba(0,0,0,0.50)';
-    ctx.fillRect(0, 0, this.W, this.H);
-
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-
-    // ИГРА ОКОНЧЕНА
-    ctx.fillStyle = '#ff6b6b';
-    ctx.font = 'bold 40px "Segoe UI", sans-serif';
-    ctx.fillText('ИГРА ОКОНЧЕНА', this.W / 2, this.H * 0.28);
-
-    // Счёт
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 26px "Segoe UI", sans-serif';
-    ctx.fillText(`Счёт: ${this.score}`, this.W / 2, this.H * 0.38);
-
-    // Рекорд
-    ctx.font = '18px "Segoe UI", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.fillText(`Рекорд: ${this.bestScore}`, this.W / 2, this.H * 0.45);
-
-    // Кнопка
-    this._drawButton(this.W / 2, this.H * 0.57, 'ЗАНОВО', '#4ecdc4');
-  }
-
-  /**
-   * Рисует кнопку с закруглениями
-   * @param {number} cx — центр X
-   * @param {number} cy — центр Y
-   * @param {string} text — текст кнопки
-   * @param {string} color — цвет кнопки
-   */
-  _drawButton(cx, cy, text, color) {
-    const ctx = this.ctx;
-    const bw = 200, bh = 54;
-    const bx = cx - bw / 2;
-    const by = cy - bh / 2;
-
-    // Тень
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    this._roundRect(ctx, bx + 2, by + 3, bw, bh, 14);
-    ctx.fill();
-
-    // Кнопка
-    ctx.fillStyle = color;
-    this._roundRect(ctx, bx, by, bw, bh, 14);
-    ctx.fill();
-
-    // Текст
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px "Segoe UI", sans-serif';
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, cx, cy);
-  }
-
-  /**
-   * Рисует закруглённый прямоугольник (path)
-   */
-  _roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
+    // Тонкая чёрная обводка (0.5px)
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(
+      block.x + 0.25,
+      block.y + 0.25,
+      block.width - 0.5,
+      block.height - 0.5
+    );
   }
 
   // ===========================================

@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Идеальная стопка</title>
+  <title>Stack Perfect</title>
+
+  <!-- Шрифт Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Telegram Web Apps API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -12,16 +17,51 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Canvas — основная область рендера игры -->
+
+  <!-- Canvas — основная область рендера (блоки, фон, частицы) -->
   <canvas id="gameCanvas"></canvas>
 
-  <!-- Оверлей загрузки ассетов -->
-  <div id="loadingScreen">
-    <div class="loader">
-      <div class="loader-spinner"></div>
-      <p class="loader-text">Загрузка...</p>
-      <div class="loader-bar">
-        <div class="loader-bar-fill" id="loaderBarFill"></div>
+  <!-- ======== СТАРТОВОЕ МЕНЮ (HTML-оверлей) ======== -->
+  <div id="menuOverlay" class="overlay hidden">
+    <div class="menu-content">
+      <h1 class="game-title">Stack<br><span class="title-accent">Perfect</span></h1>
+      <p class="game-subtitle">Нажми, чтобы начать</p>
+      <button id="btnPlay" class="btn-play">ИГРАТЬ</button>
+    </div>
+  </div>
+
+  <!-- ======== ИГРОВОЙ СЧЁТ (HTML-оверлей) ======== -->
+  <div id="scoreOverlay" class="score-pill hidden">
+    <span id="scoreValue">0</span>
+  </div>
+
+  <!-- ======== GAME OVER (HTML-модалка) ======== -->
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-icon">!</div>
+      <h2 class="modal-title">Game Over</h2>
+      <div class="modal-stats">
+        <div class="stat">
+          <span class="stat-label">Счёт</span>
+          <span class="stat-value" id="finalScore">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-label">Рекорд</span>
+          <span class="stat-value" id="bestScore">0</span>
+        </div>
+      </div>
+      <button id="btnRestart" class="btn-play btn-restart">ПОВТОРИТЬ</button>
+    </div>
+  </div>
+
+  <!-- ======== ЭКРАН ЗАГРУЗКИ ======== -->
+  <div id="loadingScreen" class="loading">
+    <div class="loading-inner">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Загрузка...</p>
+      <div class="loading-bar">
+        <div class="loading-bar-fill" id="loaderBarFill"></div>
       </div>
     </div>
   </div>

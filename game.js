@@ -386,13 +386,6 @@ class Game {
 
   _updateScoreDisplay() {
     this.elScoreVal.textContent = this.score;
-    // Начисление монет: 1 монета за каждые 5 блоков
-    const newSessionCoins = Math.floor(this.score / 5);
-    if (newSessionCoins > this.sessionCoins) {
-      this.sessionCoins = newSessionCoins;
-      this.coins = this._loadCoins() + 1; // +1 за прошлую "пятёрку"
-      this._saveCoins(this.coins);
-    }
     this.elCoinVal.textContent = this.coins;
   }
 
@@ -489,9 +482,9 @@ class Game {
         this.bestScore = this.score;
         this._saveBestScore(this.bestScore);
       }
-      // Итоговое начисление монет за сессию
-      const sessionEarned = Math.floor(this.score / 5);
-      this.coins = this._loadCoins() + sessionEarned;
+      // Начисление монет: 1 монета за каждые 5 блоков
+      const earned = Math.floor(this.score / 5);
+      this.coins += earned;
       this._saveCoins(this.coins);
       this.movingBlock = null;
       this._updateOverlays();

@@ -30,9 +30,15 @@
     </div>
   </div>
 
-  <!-- ======== ИГРОВОЙ СЧЁТ (HTML-оверлей) ======== -->
-  <div id="scoreOverlay" class="score-pill hidden">
-    <span id="scoreValue">0</span>
+  <!-- ======== ИГРОВОЙ СЧЁТ + МОНЕТЫ (HTML-оверлей) ======== -->
+  <div id="hudOverlay" class="hud hidden">
+    <div class="score-pill">
+      <span id="scoreValue">0</span>
+    </div>
+    <div class="coin-pill">
+      <span class="coin-icon"></span>
+      <span id="coinValue">0</span>
+    </div>
   </div>
 
   <!-- ======== GAME OVER (HTML-модалка) ======== -->
@@ -49,6 +55,11 @@
         <div class="stat">
           <span class="stat-label">Рекорд</span>
           <span class="stat-value" id="bestScore">0</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-label">Монеты</span>
+          <span class="stat-value stat-coins"><span class="coin-icon-sm"></span><span id="modalCoins">0</span></span>
         </div>
       </div>
       <button id="btnRestart" class="btn-play btn-restart">ПОВТОРИТЬ</button>

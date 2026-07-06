@@ -257,6 +257,8 @@ class Game {
     this.state     = 'loading';  // loading | menu | playing | gameover
     this.score     = 0;
     this.bestScore = this._loadBestScore();
+    this.coins     = this._loadCoins();  // баланс монет
+    this.sessionCoins = 0;               // монеты, заработанные в текущей сессии
 
     // --- Блоки ---
     this.blocks      = [];
@@ -273,11 +275,13 @@ class Game {
 
     // HTML-элементы
     this.elMenu      = document.getElementById('menuOverlay');
-    this.elScore     = document.getElementById('scoreOverlay');
+    this.elHud       = document.getElementById('hudOverlay');
     this.elScoreVal  = document.getElementById('scoreValue');
+    this.elCoinVal   = document.getElementById('coinValue');
     this.elGameOver  = document.getElementById('gameOverOverlay');
     this.elFinalSc   = document.getElementById('finalScore');
     this.elBestSc    = document.getElementById('bestScore');
+    this.elModalCoins= document.getElementById('modalCoins');
 
     this._setupCanvas();
     this._setupInput();
@@ -361,26 +365,35 @@ class Game {
     switch (this.state) {
       case 'menu':
         this.elMenu.classList.remove('hidden');
-        this.elScore.classList.add('hidden');
+        this.elHud.classList.add('hidden');
         this.elGameOver.classList.add('hidden');
         break;
       case 'playing':
         this.elMenu.classList.add('hidden');
-        this.elScore.classList.remove('hidden');
+        this.elHud.classList.remove('hidden');
         this.elGameOver.classList.add('hidden');
         break;
       case 'gameover':
         this.elMenu.classList.add('hidden');
-        this.elScore.classList.add('hidden');
+        this.elHud.classList.add('hidden');
         this.elGameOver.classList.remove('hidden');
         this.elFinalSc.textContent = this.score;
         this.elBestSc.textContent  = this.bestScore;
+        this.elModalCoins.textContent = this.coins;
         break;
     }
   }
 
   _updateScoreDisplay() {
     this.elScoreVal.textContent = this.score;
+    // Начисление монет: 1 монета за каждые 5 блоков
+    const newSessionCoins = Math.floor(this.score / 5);
+    if (newSessionCoins > this.sessionCoins) {
+      this.sessionCoins = newSessionCoins;
+      this.coins = this._loadCoins() + 1; // +1 за прошлую "пятёрку"
+      this._saveCoins(this.coins);
+    }
+    this.elCoinVal.textContent = this.coins;
   }
 
   // ===========================================
@@ -393,6 +406,7 @@ class Game {
     this.camera.reset();
     this.particles.clear();
     this.score       = 0;
+    this.sessionCoins= 0;
     this.state       = 'playing';
     this._updateScoreDisplay();
     this._updateOverlays();
@@ -475,6 +489,10 @@ class Game {
         this.bestScore = this.score;
         this._saveBestScore(this.bestScore);
       }
+      // Итоговое начисление монет за сессию
+      const sessionEarned = Math.floor(this.score / 5);
+      this.coins = this._loadCoins() + sessionEarned;
+      this._saveCoins(this.coins);
       this.movingBlock = null;
       this._updateOverlays();
       return;
@@ -615,27 +633,31 @@ class Game {
   }
 
   /**
-   * Рисует блок с изображением, тенью и ТОНКОЙ обводкой
+   * Рисует блок с тенью Canvas (без обводки)
    */
   _drawBlock(block) {
     const ctx = this.ctx;
     const img = this.assets.images[block.imageKey];
-    // Пропорциональный crop: убираем ~4% изображения с каждой стороны (тёмная рамка PNG)
-    const cropX = img ? img.width * 0.04 : 0;
-    const cropY = img ? img.height * 0.04 : 0;
 
-    // Изображение или цвет (с crop для PNG)
+    // Включаем тень только для этого блока
+    ctx.shadowColor   = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur    = 4;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 2;
+
+    // Изображение или цвет
     if (img) {
-      ctx.drawImage(
-        img,
-        cropX, cropY,
-        img.width - cropX * 2, img.height - cropY * 2,
-        block.x, block.y, block.width, block.height
-      );
+      ctx.drawImage(img, block.x, block.y, block.width, block.height);
     } else {
       ctx.fillStyle = this._getBlockColor(block.imageKey);
       ctx.fillRect(block.x, block.y, block.width, block.height);
     }
+
+    // Сбрасываем тень, чтобы она не afectó другие элементы
+    ctx.shadowColor   = 'transparent';
+    ctx.shadowBlur    = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
 
   // ===========================================
@@ -651,6 +673,22 @@ class Game {
   _saveBestScore(val) {
     try {
       localStorage.setItem('stacker_best', String(val));
+    } catch { /* игнорируем */ }
+  }
+
+  // ===========================================
+  //  СОХРАНЕНИЕ МОНЕТ
+  // ===========================================
+
+  _loadCoins() {
+    try {
+      return parseInt(localStorage.getItem('sp_coins') || '0', 10);
+    } catch { return 0; }
+  }
+
+  _saveCoins(val) {
+    try {
+      localStorage.setItem('sp_coins', String(val));
     } catch { /* игнорируем */ }
   }
 }

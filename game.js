@@ -621,9 +621,9 @@ class Game {
     const ctx = this.ctx;
     const img = this.assets.images[block.imageKey];
 
-    // Тень
-    ctx.fillStyle = 'rgba(0,0,0,0.10)';
-    ctx.fillRect(block.x + 2, block.y + 2, block.width, block.height);
+    // Лёгкая тень
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    ctx.fillRect(block.x + 1, block.y + 1, block.width, block.height);
 
     // Изображение или цвет
     if (img) {
@@ -641,15 +641,7 @@ class Game {
     ctx.fillStyle = grad;
     ctx.fillRect(block.x, block.y, block.width, block.height);
 
-    // Минимальная обводка (едва заметная)
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 0.3;
-    ctx.strokeRect(
-      block.x + 0.15,
-      block.y + 0.15,
-      block.width - 0.3,
-      block.height - 0.3
-    );
+    // Обводка отключена — блоки чистые, без рамки
   }
 
   // ===========================================

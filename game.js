@@ -620,28 +620,21 @@ class Game {
   _drawBlock(block) {
     const ctx = this.ctx;
     const img = this.assets.images[block.imageKey];
+    const crop = 4; // количество пикселей обрезки с каждой стороны (убирает толстую рамку PNG)
 
-    // Лёгкая тень
-    ctx.fillStyle = 'rgba(0,0,0,0.06)';
-    ctx.fillRect(block.x + 1, block.y + 1, block.width, block.height);
-
-    // Изображение или цвет
+    // Изображение или цвет (с crop для PNG)
     if (img) {
-      ctx.drawImage(img, block.x, block.y, block.width, block.height);
+      // Рисуем с crop: берём внутреннюю часть изображения, пропуская тёмные края
+      ctx.drawImage(
+        img,
+        crop, crop,                         // откуда в исходнике
+        img.width - crop * 2, img.height - crop * 2, // размер области
+        block.x, block.y, block.width, block.height   // куда на canvas
+      );
     } else {
       ctx.fillStyle = this._getBlockColor(block.imageKey);
       ctx.fillRect(block.x, block.y, block.width, block.height);
     }
-
-    // Блик сверху для объёма
-    const grad = ctx.createLinearGradient(block.x, block.y, block.x, block.y + block.height);
-    grad.addColorStop(0,   'rgba(255,255,255,0.18)');
-    grad.addColorStop(0.4, 'rgba(255,255,255,0.02)');
-    grad.addColorStop(1,   'rgba(0,0,0,0.08)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(block.x, block.y, block.width, block.height);
-
-    // Обводка отключена — блоки чистые, без рамки
   }
 
   // ===========================================

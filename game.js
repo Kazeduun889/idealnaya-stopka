@@ -620,16 +620,17 @@ class Game {
   _drawBlock(block) {
     const ctx = this.ctx;
     const img = this.assets.images[block.imageKey];
-    const crop = 4; // количество пикселей обрезки с каждой стороны (убирает толстую рамку PNG)
+    // Пропорциональный crop: убираем ~4% изображения с каждой стороны (тёмная рамка PNG)
+    const cropX = img ? img.width * 0.04 : 0;
+    const cropY = img ? img.height * 0.04 : 0;
 
     // Изображение или цвет (с crop для PNG)
     if (img) {
-      // Рисуем с crop: берём внутреннюю часть изображения, пропуская тёмные края
       ctx.drawImage(
         img,
-        crop, crop,                         // откуда в исходнике
-        img.width - crop * 2, img.height - crop * 2, // размер области
-        block.x, block.y, block.width, block.height   // куда на canvas
+        cropX, cropY,
+        img.width - cropX * 2, img.height - cropY * 2,
+        block.x, block.y, block.width, block.height
       );
     } else {
       ctx.fillStyle = this._getBlockColor(block.imageKey);

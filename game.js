@@ -641,14 +641,14 @@ class Game {
     ctx.fillStyle = grad;
     ctx.fillRect(block.x, block.y, block.width, block.height);
 
-    // Тонкая чёрная обводка (0.5px)
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-    ctx.lineWidth = 0.5;
+    // Минимальная обводка (едва заметная)
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 0.3;
     ctx.strokeRect(
-      block.x + 0.25,
-      block.y + 0.25,
-      block.width - 0.5,
-      block.height - 0.5
+      block.x + 0.15,
+      block.y + 0.15,
+      block.width - 0.3,
+      block.height - 0.3
     );
   }
 

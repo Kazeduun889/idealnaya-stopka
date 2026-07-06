@@ -89,9 +89,10 @@ html, body {
 .game-title {
   font-size: clamp(48px, 14vw, 80px);
   font-weight: 800;
-  line-height: 1.0;
+  line-height: 1.05;
   color: #fff;
-  letter-spacing: -2px;
+  letter-spacing: 0.5px;
+  word-spacing: 4px;
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
 

@@ -222,20 +222,20 @@ html, body {
   -webkit-backdrop-filter: none;
 }
 
-.coin-dot,
-.coin-dot-sm {
-  display: inline-block;
-  border-radius: 50%;
-  background: #f9d423;
+.coin-img,
+.coin-img-sm {
+  display: block;
   flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-.coin-dot {
+.coin-img {
   width: 28px;
   height: 28px;
 }
 
-.coin-dot-sm {
+.coin-img-sm {
   width: 20px;
   height: 20px;
   vertical-align: middle;

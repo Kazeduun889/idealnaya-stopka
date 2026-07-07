@@ -449,8 +449,8 @@ class Game {
       const isActive = col.id === this.activeCollectionId;
       const isLocked = col.locked;
 
-      // Превью: платформа + все блоки
-      let preview = `<img class="inv-preview-img" src="${col.platform}" alt="platform">`;
+      // Превью: только цветные блоки
+      let preview = '';
       for (let i = 0; i < col.blocks.length; i++) {
         preview += `<span class="inv-preview-block" style="background:${this._getBlockColorByName(col.blocks[i])}"></span>`;
       }

@@ -222,21 +222,25 @@ html, body {
   -webkit-backdrop-filter: none;
 }
 
-.coin-img,
-.coin-img-sm {
+.coin-dot,
+.coin-dot-sm {
+  display: inline-block;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f9d423, #f5af19);
+  box-shadow: 0 1px 4px rgba(249, 212, 35, 0.5);
   flex-shrink: 0;
 }
 
-.coin-img {
-  width: 24px;
-  height: 24px;
+.coin-dot {
+  width: 20px;
+  height: 20px;
 }
 
-.coin-img-sm {
-  width: 16px;
-  height: 16px;
+.coin-dot-sm {
+  width: 14px;
+  height: 14px;
   vertical-align: middle;
-  margin-right: 2px;
+  margin-right: 3px;
 }
 
 #coinValue {

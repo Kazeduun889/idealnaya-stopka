@@ -628,26 +628,12 @@ class Game {
   }
 
   /**
-   * Рисует блок — изображение с обрезкой краёв (чёрная рамка PNG)
+   * Рисует блок — чистый цветной прямоугольник, без PNG и обводок
    */
   _drawBlock(block) {
     const ctx = this.ctx;
-    const img = this.assets.images[block.imageKey];
-
-    if (img) {
-      // Обрезаем ~7% с каждой стороны — убирает чёрную рамку из PNG
-      const cx = img.width * 0.07;
-      const cy = img.height * 0.07;
-      ctx.drawImage(
-        img,
-        cx, cy,
-        img.width - cx * 2, img.height - cy * 2,
-        block.x, block.y, block.width, block.height
-      );
-    } else {
-      ctx.fillStyle = this._getBlockColor(block.imageKey);
-      ctx.fillRect(block.x, block.y, block.width, block.height);
-    }
+    ctx.fillStyle = this._getBlockColor(block.imageKey);
+    ctx.fillRect(block.x, block.y, block.width, block.height);
   }
 
   // ===========================================

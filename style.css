@@ -222,23 +222,24 @@ html, body {
   -webkit-backdrop-filter: none;
 }
 
-.coin-img,
-.coin-img-sm {
-  display: block;
+.coin-dot,
+.coin-dot-sm {
+  display: inline-block;
+  border-radius: 50%;
+  background: #f9d423;
   flex-shrink: 0;
-  mix-blend-mode: screen;
 }
 
-.coin-img {
-  width: 24px;
-  height: 24px;
+.coin-dot {
+  width: 28px;
+  height: 28px;
 }
 
-.coin-img-sm {
-  width: 16px;
-  height: 16px;
+.coin-dot-sm {
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
-  margin-right: 3px;
+  margin-right: 4px;
 }
 
 #coinValue {

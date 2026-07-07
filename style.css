@@ -213,8 +213,10 @@ html, body {
 
 /* Монетки */
 .coin-pill {
-  padding: 0 14px;
+  padding: 0 12px;
   gap: 5px;
+  background: rgba(249, 212, 35, 0.15);
+  border: 1px solid rgba(249, 212, 35, 0.25);
 }
 
 .coin-img,
@@ -223,8 +225,8 @@ html, body {
 }
 
 .coin-img {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .coin-img-sm {

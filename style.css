@@ -217,20 +217,21 @@ html, body {
   gap: 5px;
 }
 
-.coin-icon,
-.coin-icon-sm {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
-  box-shadow: 0 1px 4px rgba(249, 212, 35, 0.4);
+.coin-img,
+.coin-img-sm {
   flex-shrink: 0;
 }
 
-.coin-icon-sm {
-  width: 14px;
-  height: 14px;
+.coin-img {
+  width: 20px;
+  height: 20px;
+}
+
+.coin-img-sm {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: 2px;
 }
 
 #coinValue {
@@ -241,11 +242,20 @@ html, body {
   text-shadow: 0 1px 6px rgba(249, 212, 35, 0.3);
 }
 
-.stat-coins {
-  display: flex;
+.session-earned {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 24px;
+}
+
+.earned-amount {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: #f9d423;
+  font-weight: 700;
+  font-size: 17px;
 }
 
 /* =============================================

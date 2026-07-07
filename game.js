@@ -71,6 +71,7 @@ class AssetLoader {
       { key: 'bg',       src: 'assets/bg.png' },
       { key: 'bg_menu',  src: 'assets/bg_menu.png' },
       { key: 'platform', src: 'assets/platform.png' },
+      { key: 'coin',     src: 'assets/coin.png' },
       ...BLOCK_IMAGE_NAMES.map(name => ({
         key: name,
         src: `assets/${name}.png`,
@@ -257,8 +258,8 @@ class Game {
     this.state     = 'loading';  // loading | menu | playing | gameover
     this.score     = 0;
     this.bestScore = this._loadBestScore();
-    this.coins     = this._loadCoins();  // баланс монет
-    this.sessionCoins = 0;               // монеты, заработанные в текущей сессии
+    this.coins     = this._loadCoins();  // общий баланс монет
+    this.sessionCoinsEarned = 0;          // заработано за текущую сессию
 
     // --- Блоки ---
     this.blocks      = [];
@@ -282,6 +283,7 @@ class Game {
     this.elFinalSc   = document.getElementById('finalScore');
     this.elBestSc    = document.getElementById('bestScore');
     this.elModalCoins= document.getElementById('modalCoins');
+    this.elSessionEarned = document.getElementById('sessionEarned');
 
     this._setupCanvas();
     this._setupInput();
@@ -379,7 +381,7 @@ class Game {
         this.elGameOver.classList.remove('hidden');
         this.elFinalSc.textContent = this.score;
         this.elBestSc.textContent  = this.bestScore;
-        this.elModalCoins.textContent = this.coins;
+        this.elSessionEarned.textContent = '+' + this.sessionCoinsEarned;
         break;
     }
   }
@@ -399,7 +401,7 @@ class Game {
     this.camera.reset();
     this.particles.clear();
     this.score       = 0;
-    this.sessionCoins= 0;
+    this.sessionCoinsEarned = 0;
     this.state       = 'playing';
     this._updateScoreDisplay();
     this._updateOverlays();
@@ -482,9 +484,9 @@ class Game {
         this.bestScore = this.score;
         this._saveBestScore(this.bestScore);
       }
-      // Начисление монет: 1 монета за каждые 5 блоков
-      const earned = Math.floor(this.score / 5);
-      this.coins += earned;
+      // Монеты за текущую сессию: 1 монета за каждые 5 блоков
+      this.sessionCoinsEarned = Math.floor(this.score / 5);
+      this.coins += this.sessionCoinsEarned;
       this._saveCoins(this.coins);
       this.movingBlock = null;
       this._updateOverlays();
@@ -626,31 +628,18 @@ class Game {
   }
 
   /**
-   * Рисует блок с тенью Canvas (без обводки)
+   * Рисует блок — ТОЛЬКО изображение, без обводок и теней
    */
   _drawBlock(block) {
     const ctx = this.ctx;
     const img = this.assets.images[block.imageKey];
 
-    // Включаем тень только для этого блока
-    ctx.shadowColor   = 'rgba(0,0,0,0.15)';
-    ctx.shadowBlur    = 4;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 2;
-
-    // Изображение или цвет
     if (img) {
       ctx.drawImage(img, block.x, block.y, block.width, block.height);
     } else {
       ctx.fillStyle = this._getBlockColor(block.imageKey);
       ctx.fillRect(block.x, block.y, block.width, block.height);
     }
-
-    // Сбрасываем тень, чтобы она не afectó другие элементы
-    ctx.shadowColor   = 'transparent';
-    ctx.shadowBlur    = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
   }
 
   // ===========================================

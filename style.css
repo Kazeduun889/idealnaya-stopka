@@ -59,7 +59,7 @@ html, body {
    СТАРТОВОЕ МЕНЮ
    ============================================= */
 #menuOverlay {
-  background: url('assets/bg_menu.png') center center / cover no-repeat;
+  background: url('assets/bg_menu.png?v=3') center center / cover no-repeat;
 }
 
 #menuOverlay::before {

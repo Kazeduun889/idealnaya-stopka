@@ -434,6 +434,198 @@ html, body {
 }
 
 /* =============================================
+   КНОПКА «ИНВЕНТАРЬ» (вторичная)
+   ============================================= */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s ease, background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.btn-secondary:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* =============================================
+   ИНВЕНТАРЬ — МОДАЛЬНОЕ ОКНО
+   ============================================= */
+#inventoryOverlay {
+  background: rgba(15, 15, 26, 0.60);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.inv-modal {
+  position: relative;
+  z-index: 2;
+  width: min(380px, 90vw);
+  max-height: 80vh;
+  padding: 24px 20px;
+  border-radius: 24px;
+  background: rgba(30, 30, 50, 0.90);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modalIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.inv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inv-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.inv-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.inv-close:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Список карточек */
+.inv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Карточка коллекции */
+.inv-card {
+  border-radius: 20px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.12) 0%, rgba(68, 176, 158, 0.06) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inv-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inv-card-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.inv-card-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Превью элементов коллекции */
+.inv-card-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inv-preview-img {
+  width: 36px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.inv-preview-block {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+/* Кнопки статуса */
+.inv-btn {
+  align-self: flex-start;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.12s, opacity 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.inv-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.inv-btn-active {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+  cursor: default;
+  box-shadow: 0 2px 12px rgba(46, 204, 113, 0.3);
+}
+
+.inv-btn-locked {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: default;
+}
+
+.inv-btn:not(.inv-btn-active):not(.inv-btn-locked) {
+  background: rgba(78, 205, 196, 0.2);
+  color: #4ecdc4;
+}
+
+.inv-btn:not(.inv-btn-active):not(.inv-btn-locked):active {
+  background: rgba(78, 205, 196, 0.35);
+}
+
+/* =============================================
    УТИЛИТЫ
    ============================================= */
 .hidden {

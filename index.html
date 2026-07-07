@@ -27,6 +27,7 @@
       <h1 class="game-title">Stack<br><span class="title-accent">Perfect</span></h1>
       <p class="game-subtitle">Нажми, чтобы начать</p>
       <button id="btnPlay" class="btn-play">ИГРАТЬ</button>
+      <button id="btnInventory" class="btn-secondary">ИНВЕНТАРЬ</button>
     </div>
   </div>
 
@@ -61,6 +62,17 @@
         Заработано за игру: <span class="earned-amount"><img class="coin-img-sm" src="assets/coin.png?v=5" alt="coin"><span id="sessionEarned">+0</span></span>
       </div>
       <button id="btnRestart" class="btn-play btn-restart">ПОВТОРИТЬ</button>
+    </div>
+  </div>
+
+  <!-- ======== ИНВЕНТАРЬ / КОЛЛЕКЦИИ ======== -->
+  <div id="inventoryOverlay" class="overlay hidden">
+    <div class="inv-modal">
+      <div class="inv-header">
+        <h2 class="inv-title">Ваши коллекции</h2>
+        <button id="btnCloseInventory" class="inv-close">&times;</button>
+      </div>
+      <div id="inventoryList" class="inv-list"></div>
     </div>
   </div>
 

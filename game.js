@@ -52,6 +52,21 @@ const BLOCK_IMAGE_NAMES = [
 ];
 
 // =============================================
+//  СИСТЕМА КОЛЛЕКЦИЙ (Инвентарь)
+// =============================================
+const COLLECTIONS = [
+  {
+    id: 'basic_colors',
+    name: 'Базовые цвета',
+    description: 'Стартовый набор ярких глянцевых блоков',
+    platform: 'assets/platform.png',
+    blocks: ['red', 'blue', 'green', 'yellow', 'orange', 'pink', 'purple', 'grey', 'black'],
+    color: '#4ecdc4',
+    locked: false,
+  },
+];
+
+// =============================================
 //  СИСТЕМА ЗАГРУЗКИ АССЕТОВ
 // =============================================
 class AssetLoader {
@@ -261,6 +276,10 @@ class Game {
     this.coins     = this._loadCoins();  // общий баланс монет
     this.sessionCoinsEarned = 0;          // заработано за текущую сессию
 
+    // --- Коллекции ---
+    this.activeCollectionId = this._loadActiveCollection();
+    this.activeCollection   = COLLECTIONS.find(c => c.id === this.activeCollectionId) || COLLECTIONS[0];
+
     // --- Блоки ---
     this.blocks      = [];
     this.movingBlock = null;
@@ -284,6 +303,8 @@ class Game {
     this.elBestSc    = document.getElementById('bestScore');
     this.elModalCoins= document.getElementById('modalCoins');
     this.elSessionEarned = document.getElementById('sessionEarned');
+    this.elInventory     = document.getElementById('inventoryOverlay');
+    this.elInventoryList = document.getElementById('inventoryList');
 
     this._setupCanvas();
     this._setupInput();
@@ -338,6 +359,24 @@ class Game {
       if (this.state === 'gameover') this._resetGame();
     });
 
+    // Кнопка «Инвентарь»
+    document.getElementById('btnInventory').addEventListener('click', () => {
+      this._openInventory();
+    });
+    document.getElementById('btnInventory').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      this._openInventory();
+    });
+
+    // Закрытие инвентаря
+    document.getElementById('btnCloseInventory').addEventListener('click', () => {
+      this._closeInventory();
+    });
+    document.getElementById('btnCloseInventory').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      this._closeInventory();
+    });
+
     // Предотвращаем зум и скролл
     document.addEventListener('gesturestart', e => e.preventDefault());
     document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
@@ -389,6 +428,83 @@ class Game {
   _updateScoreDisplay() {
     this.elScoreVal.textContent = this.score;
     this.elCoinVal.textContent = this.coins;
+  }
+
+  // ===========================================
+  //  ИНВЕНТАРЬ / КОЛЛЕКЦИИ
+  // ===========================================
+
+  _openInventory() {
+    this._renderInventory();
+    this.elInventory.classList.remove('hidden');
+  }
+
+  _closeInventory() {
+    this.elInventory.classList.add('hidden');
+  }
+
+  _renderInventory() {
+    let html = '';
+    for (const col of COLLECTIONS) {
+      const isActive = col.id === this.activeCollectionId;
+      const isLocked = col.locked;
+
+      // Превью: платформа + 4 первых блока
+      let preview = `<img class="inv-preview-img" src="${col.platform}" alt="platform">`;
+      for (let i = 0; i < Math.min(4, col.blocks.length); i++) {
+        preview += `<span class="inv-preview-block" style="background:${this._getBlockColorByName(col.blocks[i])}"></span>`;
+      }
+
+      const btnClass = isActive ? 'inv-btn inv-btn-active' : (isLocked ? 'inv-btn inv-btn-locked' : 'inv-btn');
+      const btnText  = isActive ? 'ВЫБРАНО' : (isLocked ? 'ЗАБЛОКИРОВАНО' : 'ВЫБРАТЬ');
+      const btnDisabled = isActive || isLocked ? 'disabled' : '';
+
+      html += `
+        <div class="inv-card">
+          <div class="inv-card-header">
+            <h3 class="inv-card-name">${col.name}</h3>
+            <span class="inv-card-desc">${col.description}</span>
+          </div>
+          <div class="inv-card-preview">${preview}</div>
+          <button class="${btnClass}" ${btnDisabled} data-col-id="${col.id}">${btnText}</button>
+        </div>`;
+    }
+    this.elInventoryList.innerHTML = html;
+
+    // Вешаем обработчики на кнопки выбора
+    this.elInventoryList.querySelectorAll('.inv-btn:not(.inv-btn-active):not(.inv-btn-locked)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._selectCollection(btn.dataset.colId);
+      });
+    });
+  }
+
+  _selectCollection(colId) {
+    this.activeCollectionId = colId;
+    this.activeCollection = COLLECTIONS.find(c => c.id === colId) || COLLECTIONS[0];
+    this._saveActiveCollection(colId);
+    this._renderInventory();
+  }
+
+  _getBlockColorByName(name) {
+    const map = {
+      red: '#e74c3c', blue: '#4a90d9', green: '#27ae60',
+      yellow: '#f1c40f', orange: '#f39c12', pink: '#e91e8f',
+      purple: '#8e44ad', grey: '#aaaaaa', black: '#222222',
+    };
+    return map[name] || '#cccccc';
+  }
+
+  _loadActiveCollection() {
+    try {
+      return localStorage.getItem('sp_active_collection') || 'basic_colors';
+    } catch { return 'basic_colors'; }
+  }
+
+  _saveActiveCollection(id) {
+    try {
+      localStorage.setItem('sp_active_collection', id);
+    } catch { /* игнорируем */ }
   }
 
   // ===========================================

@@ -60,7 +60,7 @@ const COLLECTIONS = [
     name: 'Базовые цвета',
     description: 'Стартовый набор ярких глянцевых блоков',
     platform: 'assets/platform.png',
-    blocks: ['red', 'blue', 'green', 'yellow', 'orange', 'pink', 'purple', 'grey', 'black'],
+    blocks: ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'grey', 'black'],
     color: '#4ecdc4',
     locked: false,
   },
@@ -449,9 +449,9 @@ class Game {
       const isActive = col.id === this.activeCollectionId;
       const isLocked = col.locked;
 
-      // Превью: платформа + 4 первых блока
+      // Превью: платформа + все блоки
       let preview = `<img class="inv-preview-img" src="${col.platform}" alt="platform">`;
-      for (let i = 0; i < Math.min(4, col.blocks.length); i++) {
+      for (let i = 0; i < col.blocks.length; i++) {
         preview += `<span class="inv-preview-block" style="background:${this._getBlockColorByName(col.blocks[i])}"></span>`;
       }
 
